@@ -7,14 +7,14 @@ namespace BulkyWeb.Controllers;
 
 public class CategoryController : Controller
 {
-	private readonly ICategoryRepository categoryRepo;
-	public CategoryController(ICategoryRepository db)
+	private readonly IUnitOfWork unitOfWork;
+	public CategoryController(IUnitOfWork unitOfWork)
 	{
-		this.categoryRepo = db;
+		this.unitOfWork = unitOfWork;
 	}
 	public IActionResult Index()
 	{
-		var categoryList = categoryRepo.GetAll().ToList();
+		var categoryList = unitOfWork.category.GetAll().ToList();
 		return View(categoryList);
 	}
 
@@ -34,8 +34,8 @@ public class CategoryController : Controller
 
 		if (ModelState.IsValid)
 		{
-			categoryRepo.Add(category);
-			categoryRepo.Save();
+			unitOfWork.category.Add(category);
+			unitOfWork.Save();
 			TempData["success"] = "Category Created Successfully";
 			return RedirectToAction("Index");
 		}
@@ -50,7 +50,7 @@ public class CategoryController : Controller
 		if (id == null || id == 0)
 			return NotFound();
 
-		Category category = categoryRepo.Get(c => c.Id == id);
+		Category category = unitOfWork.category.Get(c => c.Id == id);
 
 		if (category == null)
 			return NotFound();
@@ -63,8 +63,8 @@ public class CategoryController : Controller
 	{
 		if (ModelState.IsValid)
 		{
-			categoryRepo.Update(category);
-			categoryRepo.Save();
+			unitOfWork.category.Update(category);
+			unitOfWork.Save();
 			TempData["success"] = "Category Updated Successfully";
 			return RedirectToAction("Index");
 		}
@@ -78,7 +78,7 @@ public class CategoryController : Controller
 		if (id == null || id == 0)
 			return NotFound();
 
-		Category category = categoryRepo.Get(c => c.Id == id);
+		Category category = unitOfWork.category.Get(c => c.Id == id);
 
 		if (category == null)
 			return NotFound();
@@ -89,13 +89,13 @@ public class CategoryController : Controller
 	[HttpPost , ActionName("Delete")]
 	public IActionResult DeletePOST(int? id)
 	{
-		Category category = categoryRepo.Get(c => c.Id == id);
+		Category category = unitOfWork.category.Get(c => c.Id == id);
 
 		if (category == null)
 			return NotFound();
 
-		categoryRepo.Remove(category);
-		categoryRepo.Save();
+		unitOfWork.category.Remove(category);
+		unitOfWork.Save();
 
 		TempData["success"] = "Category Deleted Successfully";
 		return RedirectToAction("Index");
