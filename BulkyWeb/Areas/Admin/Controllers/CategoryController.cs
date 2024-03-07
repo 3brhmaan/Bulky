@@ -2,6 +2,7 @@
 using Bulky.DataAccess.Repository.IRepository;
 using Bulky.Models;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace BulkyWeb.Areas.Admin.Controllers;
 
@@ -16,6 +17,7 @@ public class CategoryController : Controller
     public IActionResult Index()
     {
         var categoryList = unitOfWork.category.GetAll().ToList();
+
         return View(categoryList);
     }
 
