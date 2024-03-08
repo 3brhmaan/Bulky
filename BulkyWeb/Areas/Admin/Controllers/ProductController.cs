@@ -10,10 +10,11 @@ namespace BulkyWeb.Areas.Admin.Controllers;
 public class ProductController : Controller
 {
 	private readonly IUnitOfWork unitOfWork;
-
-	public ProductController(IUnitOfWork unitOfWork)
+	private readonly IWebHostEnvironment webHostEnvironment;
+	public ProductController(IUnitOfWork unitOfWork, IWebHostEnvironment webHostEnvironment)
 	{
 		this.unitOfWork = unitOfWork;
+		this.webHostEnvironment = webHostEnvironment;
 	}
 
 	public IActionResult Index()
@@ -55,9 +56,45 @@ public class ProductController : Controller
 	[HttpPost]
 	public IActionResult Upsert(Product product , IFormFile? file)
 	{
+
 		if (ModelState.IsValid)
 		{
-			unitOfWork.product.Add(product);
+			// C:\Users\aaaa\source\repos\Bulky\BulkyWeb\wwwroot
+			string wwwRoot = webHostEnvironment.WebRootPath;
+
+			if (file is not null)
+			{
+				// C:\Users\aaaa\source\repos\Bulky\BulkyWeb\wwwroot\Images\Product
+				string productPath = Path.Combine(wwwRoot, @"Images\Product");
+
+				//RandomName.JPG
+				string fileName = Guid.NewGuid().ToString() + Path.GetExtension(file.FileName);
+
+				// delete the old image if exsist
+				if (!string.IsNullOrEmpty(product.ImageUrl))
+				{
+					var oldImagePath = Path.Combine(wwwRoot, product.ImageUrl.TrimStart('\\'));
+
+					if (System.IO.File.Exists(oldImagePath))
+					{
+						System.IO.File.Delete(oldImagePath);
+					}
+				}
+
+				// File Path : C:\Users\aaaa\source\repos\Bulky\BulkyWeb\wwwroot\Images\Product\RandomName.JPG
+				using (var fileStream = new FileStream(Path.Combine(productPath , fileName) , FileMode.Create))
+				{
+					file.CopyTo(fileStream);
+				}
+				
+				product.ImageUrl = @"\Images\Product\" + fileName;
+			}
+
+			if (product.Id == 0)
+				unitOfWork.product.Add(product);
+			else
+				unitOfWork.product.Update(product);
+
 			unitOfWork.Save();
 			TempData["success"] = "Product Created Successfully";
 			return RedirectToAction("Index");
@@ -74,6 +111,7 @@ public class ProductController : Controller
 				}),
 			product = product
 		};
+
 		return View(productVm);
 	}
 
