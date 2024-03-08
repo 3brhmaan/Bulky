@@ -11,6 +11,7 @@
 	<div class="card-body p-4">
 		<form method="post" enctype="multipart/form-data" asp-action="Upsert" asp-controller="Product" class="row">
 			<input hidden asp-for="product.Id"/>
+			<input hidden asp-for="product.ImageUrl"/>
 			<div class="row">
 				<div class="col-10">
 					<div class="border p-3">

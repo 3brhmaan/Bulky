@@ -56,7 +56,6 @@ public class ProductController : Controller
 	[HttpPost]
 	public IActionResult Upsert(Product product , IFormFile? file)
 	{
-
 		if (ModelState.IsValid)
 		{
 			// C:\Users\aaaa\source\repos\Bulky\BulkyWeb\wwwroot
