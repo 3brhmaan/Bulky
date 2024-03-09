@@ -22,7 +22,7 @@ public class ProductController : Controller
 		var productList = unitOfWork.product.GetAll("Category").ToList();
 		return View(productList);
 	}
-
+	
 	[HttpGet]
 	// Update and Insert
 	public IActionResult Upsert(int? id)
@@ -114,33 +114,52 @@ public class ProductController : Controller
 		return View(productVm);
 	}
 
+	#region APICALLS
+
 	[HttpGet]
-	public IActionResult Delete(int? id)
-	{
-		if (id == null || id == 0)
-			return NotFound();
+    public IActionResult GetAll()
+    {
+        var productList = unitOfWork.product.GetAll("Category").ToList();
 
-		var product = unitOfWork.product.Get(p => p.Id == id);
+        return Json(new { data = productList });
+    }
 
-		if (product == null)
-			return NotFound();
+    [HttpDelete]
+    public IActionResult Delete(int? id)
+    {
+        var productToBeDeleted = unitOfWork.product.Get(p => p.Id == id);
+        if (productToBeDeleted is null)
+        {
+            return Json(new
+            {
+                success = false,
+                message = "Error while deleting"
+            });
+        }
+        else
+        {
+			// Delete Old Image From wwwroot
+			 
+            var oldImagePath = Path.Combine(
+                webHostEnvironment.WebRootPath,
+                productToBeDeleted.ImageUrl.TrimStart('\\')
+                );
 
-		return View(product);
-	}
+            if (System.IO.File.Exists(oldImagePath))
+            {
+                System.IO.File.Delete(oldImagePath);
+            }
 
-	[HttpPost]
-	[ActionName("Delete")]
-	public IActionResult DeletePOST(int? id)
-	{
-		var product = unitOfWork.product.Get(p => p.Id == id);
+			unitOfWork.product.Remove(productToBeDeleted);
+			unitOfWork.Save();
 
-		if (product == null)
-			return NotFound();
+            return Json(new
+            {
+                success = true,
+                message = "Deleted Successfully"
+            });
+        }
 
-		unitOfWork.product.Remove(product);
-		unitOfWork.Save();
-
-		TempData["success"] = "Product Deleted Successfully";
-		return RedirectToAction("Index");
-	}
+    }
+    #endregion
 }

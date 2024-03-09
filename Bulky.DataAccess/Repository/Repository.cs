@@ -42,7 +42,7 @@ public class Repository<T> : IRepository<T> where T : class
 			}
 		}
 
-		return dbSet.FirstOrDefault();
+		return query.FirstOrDefault();
 	}
 
 	public void Add(T entity)
