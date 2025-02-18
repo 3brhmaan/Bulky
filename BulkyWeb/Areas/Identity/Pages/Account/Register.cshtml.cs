@@ -17,7 +17,9 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Logging;
 
@@ -102,6 +104,10 @@ namespace BulkyWeb.Areas.Identity.Pages.Account
             [Display(Name = "Confirm password")]
             [Compare("Password", ErrorMessage = "The password and confirmation password do not match.")]
             public string ConfirmPassword { get; set; }
+
+            public string? Role { get; set; }
+            [ValidateNever]
+            public IEnumerable<SelectListItem> RoleList { get; set; }
         }
 
 
@@ -115,6 +121,13 @@ namespace BulkyWeb.Areas.Identity.Pages.Account
                 await _roleManager.CreateAsync(new IdentityRole(SD.Role_Company));
             }
 
+            Input = new()
+            {
+                RoleList = _roleManager.Roles
+                    .Select(role => role.Name)
+                    .Select(name => new SelectListItem(name , name))
+            };
+
             ReturnUrl = returnUrl;
             ExternalLogins = (await _signInManager.GetExternalAuthenticationSchemesAsync()).ToList();
         }
@@ -126,6 +139,15 @@ namespace BulkyWeb.Areas.Identity.Pages.Account
             if (ModelState.IsValid)
             {
                 var user = CreateUser();
+
+                if (!string.IsNullOrEmpty(Input.Role))
+                {
+                    await _userManager.AddToRoleAsync(user, Input.Role);
+                }
+                else
+                {
+                    await _userManager.AddToRoleAsync(user , SD.Role_Customer);
+                }
 
                 await _userStore.SetUserNameAsync(user, Input.Email, CancellationToken.None);
                 await _emailStore.SetEmailAsync(user, Input.Email, CancellationToken.None);
