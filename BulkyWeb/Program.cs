@@ -25,6 +25,13 @@ namespace BulkyWeb
                 .AddEntityFrameworkStores<ApplicationDbContext>()
 				.AddDefaultTokenProviders();
 
+			builder.Services.ConfigureApplicationCookie(options =>
+			{
+				options.LoginPath = $"/identity/account/login";
+				options.LogoutPath = $"/identity/account/logout";
+				options.AccessDeniedPath = $"/identity/account/accessdenied";
+			});
+
 			builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 			builder.Services.AddScoped<IEmailSender , EmailSender>();
             builder.Services.AddRazorPages();
